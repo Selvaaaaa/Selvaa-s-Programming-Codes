@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Tool Wheel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body {
+        background: linear-gradient(
+          355deg,
+          #0c2e4b 0%,
+          #0c2e4b 25%,
+          #0B6477 50%,
+          #14919B 85%,
+          #144a76 100%
+        );
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+      
+      .wheel-container {
+        position: relative;
+        width: 600px;
+        height: 600px;
+      }
+      
+      .wheel {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        animation: spin 40s linear infinite;
+        transform-origin: center center;
+      }
+      
+      .wheel:hover {
+        animation-play-state: paused;
+      }
+      
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+      
+      .segment {
+        position: absolute;
+        width: 140px;
+        height: 50px;
+        border-radius: 12px;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+        transform-origin: center center;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .segment:hover {
+        transform-origin: center center;
+        transform: scale(1.15) rotate(var(--rotation-angle));
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 255, 255, 0.4);
+        z-index: 10;
+      }
+      
+      .segment:active {
+        transform: scale(0.95) rotate(var(--rotation-angle));
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      }
+      
+      .tool-name {
+        color: white;
+        font-weight: bold;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 70%;
+        transition: all 0.3s ease;
+      }
+      
+      .segment:hover .tool-name {
+        text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+      }
+      
+      .tool-icon {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        transition: all 0.3s ease;
+      }
+      
+      .segment:hover .tool-icon {
+        transform: scale(1.1) rotate(var(--reverse-rotation));
+        filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.6));
+      }
+      
+      .category-ring {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+        border: 14px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow:
+          0 0 25px rgba(0, 0, 0, 0.2),
+          inset 0 0 12px rgba(255, 255, 255, 0.1),
+          0 8px 32px rgba(0, 0, 0, 0.25);
+        transition: all 0.3s ease-in-out;
+      }
+      
+      .category-ring:hover {
+        box-shadow:
+          0 0 35px rgba(0, 255, 255, 0.3),
+          inset 0 0 15px rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%) scale(1.02);
+      }
+      
+      .category-label {
+        position: absolute;
+        font-size: 12px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+      
+      .category-ring:hover .category-label {
+        font-size: 14px;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+      }
+
+      .text-stroke {
+        text-shadow: 
+          -1px -1px 0 #fff,  
+          1px -1px 0 #fff,
+          -1px  1px 0 #fff,
+          1px  1px 0 #fff;
+      }
+      
+      .center-logo {
+        transition: transform 0.5s ease-in-out;
+      }
+      
+      .center-logo:hover {
+        transform: rotate(360deg);
+      }
+      
+      /* Tooltip styles */
+      .tooltip {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.3s, transform 0.3s;
+        z-index: 100;
+        white-space: nowrap;
+      }
+      
+      .segment:hover .tooltip {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      /* Click animation */
+      @keyframes clickPulse {
+        0% { transform: scale(1); opacity: 0.7; }
+        50% { transform: scale(1.5); opacity: 0.5; }
+        100% { transform: scale(2); opacity: 0; }
+      }
+      
+      .click-effect {
+        position: absolute;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.7);
+        pointer-events: none;
+        animation: clickPulse 0.5s forwards;
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center min-h-screen">
+    <div class="wheel-container">
+      <!-- Center circle -->
+      <div class="absolute inset-0 flex items-center justify-center z-10">
+        <div class="w-[120px] h-[120px] bg-white rounded-full shadow-md flex items-center justify-center hover:shadow-lg transition-all duration-300">
+          <img src="/images/log-servicetrick.png" class="w-16 h-16 opacity-80 center-logo" alt="logo" onerror="this.src='https://img.icons8.com/?size=80&id=114446&format=png'" />
+        </div>
+      </div>
+
+      <!-- Category Circle -->
+      <div class="category-ring">
+        <div class="category-label text-stroke text-purple-600" style="top: -10px; left: 50%; transform: translateX(-50%)">Automation</div>
+        <div class="category-label text-stroke text-cyan-700" style="right: 20px; top: 75%; transform: translateY(-50%)">Marketing</div>
+        <div class="category-label text-stroke text-emerald-800" style="bottom: -10px; left: 50%; transform: translateX(-50%)">AI Agent</div>
+        <div class="category-label text-stroke text-yellow-600" style="bottom: 70%; left: 20px; transform: translateY(-50%)">Writing</div>
+        <div class="category-label text-stroke text-red-500" style="top: 50%; left: -5px; transform: translateY(-50%)">Video</div>
+        <div class="category-label text-stroke text-indigo-500" style="top: 25%; right: 10px;">Image</div>
+        <div class="category-label text-stroke text-pink-500" style="bottom: 25%; left: 10px;">Productivity</div>
+      </div>
+
+      <!-- Tool Wheel -->
+      <div id="wheel" class="wheel"></div>
+    </div>
+
+    <script>
+      const tools = [
+        { name: "GUIDDE", icon: "https://img.icons8.com/?size=80&id=24687&format=png", color: "bg-red-500", link: "https://www.guidde.com" },
+        { name: "RUNWAY", icon: "https://img.icons8.com/?size=80&id=46553&format=png", color: "bg-red-400", link: "https://runwayml.com" },
+        { name: "GOOGLE VEO2", icon: "https://img.icons8.com/?size=80&id=17949&format=png", color: "bg-red-300", link: "https://cloud.google.com/video-intelligence" },
+        { name: "MICROSOFT 365 COPILOT", icon: "https://img.icons8.com/?size=80&id=18798&format=png", color: "bg-yellow-400", link: "https://microsoft.com/en-us/microsoft-365/copilot" },
+        { name: "GRAMMARLY", icon: "https://img.icons8.com/?size=80&id=11394&format=png", color: "bg-yellow-500", link: "https://www.grammarly.com" },
+        { name: "NOTION", icon: "https://img.icons8.com/?size=80&id=61035&format=png", color: "bg-yellow-600", link: "https://www.notion.so" },
+        { name: "MISTRAL", icon: "https://img.icons8.com/?size=80&id=122163&format=png", color: "bg-blue-400", link: "https://mistral.ai" },
+        { name: "DEEPSEEK", icon: "https://img.icons8.com/?size=80&id=21991&format=png", color: "bg-blue-500", link: "https://deepseek.ai" },
+        { name: "FREEPIK", icon: "https://img.icons8.com/?size=80&id=114758&format=png", color: "bg-blue-300", link: "https://www.freepik.com" },
+        { name: "MIDJOURNEY", icon: "https://img.icons8.com/?size=80&id=122305&format=png", color: "bg-pink-500", link: "https://www.midjourney.com" },
+        { name: "LEONARDO", icon: "https://img.icons8.com/?size=80&id=20994&format=png", color: "bg-pink-400", link: "https://leonardo.ai" },
+        { name: "GROK", icon: "https://img.icons8.com/?size=80&id=2566&format=png", color: "bg-emerald-600", link: "https://grok.x.ai" },
+        { name: "INTERCOM", icon: "https://img.icons8.com/?size=80&id=13963&format=png", color: "bg-emerald-400", link: "https://www.intercom.com" },
+        { name: "HUBSPOT", icon: "https://img.icons8.com/?size=80&id=63097&format=png", color: "bg-cyan-500", link: "https://www.hubspot.com" },
+        { name: "COCKPIT", icon: "https://img.icons8.com/?size=80&id=11000&format=png", color: "bg-cyan-600", link: "https://getcockpit.com" },
+        { name: "CLAUDE SONNET", icon: "https://img.icons8.com/?size=80&id=20302&format=png", color: "bg-purple-500", link: "https://www.anthropic.com/claude" },
+        { name: "WAND", icon: "https://img.icons8.com/?size=80&id=39656&format=png", color: "bg-purple-300", link: "https://www.wand.ai" },
+        { name: "CHAT GPT", icon: "https://freelogopng.com/images/all_img/1681039084chatgpt-icon.png", color: "bg-blue-600", link: "https://chat.openai.com" },
+        { name: "PERPLEXITY", icon: "https://th.bing.com/th/id/OIP.8OXQ2Elijibr3SGRgJRZBQHaHa?rs=1&pid=ImgDetMain", color: "bg-emerald-500", link: "https://www.perplexity.ai" },
+        { name: "JASPER", icon: "https://th.bing.com/th/id/OIP.vSXMygGL7owltmMxqOPPkAHaF-?rs=1&pid=ImgDetMain", color: "bg-emerald-300", link: "https://www.jasper.ai" },
+        { name: "ZAPIER AI", icon: "https://th.bing.com/th/id/OIP.HDbND0xWaAZlGPFBjJh_CAHaHX?w=728&h=724&rs=1&pid=ImgDetMain", color: "bg-purple-400", link: "https://zapier.com/ai" },
+        { name: "GEMINI AI", icon: "https://static.vecteezy.com/system/resources/previews/046/861/646/original/gemini-icon-on-a-transparent-background-free-png.png", color: "bg-purple-600", link: "https://gemini.google.com" }
+      ];
+      
+      const wheel = document.getElementById("wheel");
+      const centerX = 300;
+      const centerY = 300;
+      const radius = 220;
+      const count = tools.length;
+      
+      // Function to create click effect
+      function createClickEffect(x, y) {
+        const effect = document.createElement('div');
+        effect.className = 'click-effect';
+        effect.style.left = `${x - 25}px`;
+        effect.style.top = `${y - 25}px`;
+        document.body.appendChild(effect);
+        
+        // Remove the effect element when animation ends
+        setTimeout(() => {
+          effect.remove();
+        }, 500);
+      }
+      
+      // Create and position each tool segment
+      tools.forEach((tool, index) => {
+        // Calculate the angle for this segment
+        const angleDeg = (index / count) * 360;
+        const angleRad = (angleDeg * Math.PI) / 180;
+        
+        // Calculate position on the circle
+        const x = centerX + radius * Math.cos(angleRad);
+        const y = centerY + radius * Math.sin(angleRad);
+        
+        // Create the segment element
+        const segment = document.createElement("div");
+        segment.className = `segment ${tool.color}`;
+        
+        // Set custom property for the rotation angle to be used in hover effect
+        segment.style.setProperty('--rotation-angle', `${angleDeg}deg`);
+        segment.style.setProperty('--reverse-rotation', `${-angleDeg}deg`);
+        
+        // Generate the content with proper layout
+        segment.innerHTML = `
+          <span class="tool-name">${tool.name}</span>
+          <img src="${tool.icon}" alt="${tool.name}" class="tool-icon" onerror="this.src='https://img.icons8.com/?size=80&id=7867&format=png'">
+          <span class="tooltip">Click to visit ${tool.name}</span>
+        `;
+        
+        // Position the segment at the calculated point
+        segment.style.position = "absolute";
+        segment.style.left = `${x - 70}px`; // Center horizontally (half of segment width)
+        segment.style.top = `${y - 25}px`;  // Center vertically (half of segment height)
+        
+        // Apply the rotation to align with the wheel
+        segment.style.transform = `rotate(${angleDeg}deg)`;
+        
+        // Add a reverse rotation to the content to keep it readable
+        const children = segment.querySelectorAll('.tool-name, .tool-icon');
+        children.forEach(child => {
+          child.style.transform = `rotate(-${angleDeg}deg)`;
+        });
+        
+        // Add click event with the correct link handling
+        segment.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Create click effect
+          createClickEffect(e.clientX, e.clientY);
+          
+          // Use setTimeout to allow the click animation to start before navigating
+          setTimeout(() => {
+            window.open(tool.link, "_blank", "noopener,noreferrer");
+          }, 100);
+        });
+        
+        // Add to the wheel
+        wheel.appendChild(segment);
+      });
+      
+      // Prevent the wheel from spinning when hovering over it
+      wheel.addEventListener('mouseover', () => {
+        wheel.style.animationPlayState = 'paused';
+      });
+      
+      // Resume spinning when not hovering
+      wheel.addEventListener('mouseout', () => {
+        wheel.style.animationPlayState = 'running';
+      });
+    </script>
+  </body>
+</html>
